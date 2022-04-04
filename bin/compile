@@ -28,5 +28,6 @@ CACHE_DIR=${CACHE_DIR} \
 ENV_DIR=${ENV_DIR} \
 SOURCE_VERSION=${SOURCE_VERSION} \
 node ${BP_DIR}/lib/upload.js | output "$LOG_FILE"
-echo "FRONTIER_DASHBOARD_TOKEN: ${FRONTIER_DASHBOARD_TOKEN}"
+FRONTIER_DASHBOARD_TOKEN=${FRONTIER_DASHBOARD_TOKEN} \
 curl -X POST -H "x-api-key: ${FRONTIER_DASHBOARD_TOKEN}" -d "$(cat ./deps.json)" https://tiagtww9kj.execute-api.us-east-1.amazonaws.com/dev/app/deploy/snapshot
+# echo "FRONTIER_DASHBOARD_TOKEN: ${FRONTIER_DASHBOARD_TOKEN}" 
