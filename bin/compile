@@ -29,5 +29,4 @@ SOURCE_VERSION=${SOURCE_VERSION} \
 node ${BP_DIR}/lib/upload.js | output "$LOG_FILE"
 
 ### Send deps to Frontier Dashboard
-FRONTIER_DASHBOARD_TOKEN=KrgZiZRMgxNKvH5gew3n6VBxkcradwu9lQrZe5C7 \
-curl -X POST -H "x-api-key: ${FRONTIER_DASHBOARD_TOKEN}" -d "$(cat ./deps.json)" https://tiagtww9kj.execute-api.us-east-1.amazonaws.com/dev/app/deploy/snapshot
+curl -X POST -H "x-api-key: KrgZiZRMgxNKvH5gew3n6VBxkcradwu9lQrZe5C7" -d "$(cat ./deps.json)" https://tiagtww9kj.execute-api.us-east-1.amazonaws.com/dev/app/deploy/snapshot
