@@ -21,14 +21,13 @@ source ${BP_DIR}/lib/output.sh
 ### Upload with Node
 cd ${BP_DIR}
 npm install | output "$LOG_FILE"
-npm ls --json --depth 1 > deps.json
 
 BUILD_DIR=${BUILD_DIR} \
 CACHE_DIR=${CACHE_DIR} \
 ENV_DIR=${ENV_DIR} \
 SOURCE_VERSION=${SOURCE_VERSION} \
 node ${BP_DIR}/lib/upload.js | output "$LOG_FILE"
-FRONTIER_DASHBOARD_TOKEN=${ENV["FRONTIER_DASHBOARD_TOKEN"]} \
+
+### Send deps to Frontier Dashboard
+FRONTIER_DASHBOARD_TOKEN=KrgZiZRMgxNKvH5gew3n6VBxkcradwu9lQrZe5C7 \
 curl -X POST -H "x-api-key: ${FRONTIER_DASHBOARD_TOKEN}" -d "$(cat ./deps.json)" https://tiagtww9kj.execute-api.us-east-1.amazonaws.com/dev/app/deploy/snapshot
-FRONTIER_DASHBOARD_TOKEN=${ENV["FRONTIER_DASHBOARD_TOKEN"]} \
-echo "FRONTIER_DASHBOARD_TOKEN: ${FRONTIER_DASHBOARD_TOKEN}" 
