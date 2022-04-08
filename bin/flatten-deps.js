@@ -11,7 +11,6 @@ const recursiveSearch = (obj, searchKey, results = []) => {
   const r = results;
   Object.keys(obj).forEach(key => {
     const value = obj[key];
-    console.log('key:', key)
     // push package version
     if (key !== searchKey && typeof value === 'object' && value.hasOwnProperty('version')) {
       r.push({ name: key, version: value.version });
@@ -29,7 +28,7 @@ const recursiveSearch = (obj, searchKey, results = []) => {
 };
 
 const flatDeps = recursiveSearch(deps, 'dependencies');
-console.log(flatDeps.length);
+console.log("dependency count:",flatDeps.length);
 
 output.dependencies = flatDeps
 
