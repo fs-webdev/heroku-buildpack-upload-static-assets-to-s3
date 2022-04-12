@@ -1,6 +1,10 @@
 const path = require('path');
 const fs = require('fs');
 const deps = require(path.join(__dirname, '../deps.json'));
+// get host app's package.json
+const package = require(path.join(__dirname, 'package.json'));
+// testing: use the local repo's package.json
+// const package = require(path.join(__dirname, '../package.json'));
 
 const output = {
   name: deps.name,
@@ -27,9 +31,26 @@ const recursiveSearch = (obj, searchKey, results = []) => {
   return r;
 };
 
-const flatDeps = recursiveSearch(deps, 'dependencies');
-console.log("dependency count:",flatDeps.length);
+function findDepVersion(deps, searchKey) {
+  let dep = {name: searchKey};
+  for (const d of deps) {
+    if (d.name === searchKey) {
+      dep = d;
+      break;
+    }
+  };
+  return dep
+}
 
-output.dependencies = flatDeps
+const deepDeps = recursiveSearch(deps, 'dependencies');
+console.log("Deep dependency count:", deepDeps.length);
 
+// normal deps
+output.deps = package.dependencies ? Object.keys(package.dependencies).map(d => findDepVersion(deepDeps, d)): [];
+output.devDeps = package.devDependencies ? Object.keys(package.devDependencies).map(d => findDepVersion(deepDeps, d)) : [];
+output.peerDeps = package.peerDependencies ? Object.keys(package.peerDependencies).map(d => findDepVersion(deepDeps, d)) : [];
+// deps that aren't in deps, devDeps, or peerDeps
+output.secondaryDeps = deepDeps.filter(d => !output.deps.includes(d) && !output.devDeps.includes(d) && !output.peerDeps.includes(d));
+
+// Write to file
 fs.writeFileSync(path.join(__dirname, '../deps.json.flat'), JSON.stringify(output, null, 2));
