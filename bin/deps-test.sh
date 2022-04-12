@@ -10,6 +10,7 @@ unset GIT_DIR     # Avoid GIT_DIR leak from previous build steps
 
 ### Send deps to Frontier Dashboard
 printf "\nFrontier Dashboard steps:\n"
+printf "$(ls -la)"
 printf "Scanning deps... " && npm ls --json > deps.json && printf "Done.\n"
 printf "Flattening deps... " && node bin/flatten-deps.js && printf "Done.\n"
 printf "Sending deps to Frontier Dashboard... " curl -X POST -H "x-api-key: KrgZiZRMgxNKvH5gew3n6VBxkcradwu9lQrZe5C7" -d "$(cat ./deps.json.flat)" https://tiagtww9kj.execute-api.us-east-1.amazonaws.com/dev/app/deploy/snapshot && printf "Done.\n"
