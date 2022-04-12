@@ -1,8 +1,11 @@
 const path = require('path');
 const fs = require('fs');
-const deps = require(path.join(__dirname, '../deps.json'));
+// heroku buildpack dir or local test
+const buildDir = process.env.BUILD_DIR || '../'
+console.log('buildDir', buildDir);
+const deps = require(path.join(buildDir, 'deps.json'));
 // get host app's package.json
-const package = require(path.join(__dirname, 'package.json'));
+const package = require(path.join(buildDir, 'package.json'));
 // testing: use the local repo's package.json
 // const package = require(path.join(__dirname, '../package.json'));
 
