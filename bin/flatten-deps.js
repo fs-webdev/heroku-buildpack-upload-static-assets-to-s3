@@ -2,7 +2,8 @@ const path = require('path');
 const fs = require('fs');
 // heroku buildpack dir or local test
 const buildDir = process.env.BUILD_DIR || '../'
-const deps = require(path.join(buildDir, 'deps.json'));
+const bpDir = process.env.BP_DIR || './'
+const deps = require(path.join(bpDir, 'deps.json'));
 // get host app's package.json
 const package = require(path.join(buildDir, 'package.json'));
 console.log('Flattening dependencies for', package.name, '...');
@@ -54,4 +55,4 @@ output.peerDeps = package.peerDependencies ? Object.keys(package.peerDependencie
 output.secondaryDeps = deepDeps.filter(d => !output.deps.includes(d) && !output.devDeps.includes(d) && !output.peerDeps.includes(d));
 
 // Write to file
-fs.writeFileSync(path.join(__dirname, '../deps.json.flat'), JSON.stringify(output, null, 2));
+fs.writeFileSync(path.join(bpDir, 'deps.json.flat'), JSON.stringify(output, null, 2));
