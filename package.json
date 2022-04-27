@@ -23,6 +23,7 @@
     "glob": "^7.0.5",
     "lodash": "^4.15.0",
     "mime-types": "^2.1.11",
+    "semver": "^7.3.7",
     "shelljs": "^0.8.4"
   },
   "devDependencies": {

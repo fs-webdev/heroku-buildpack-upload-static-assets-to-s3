@@ -1,8 +1,9 @@
 const path = require('path');
 const fs = require('fs');
+const semverGt = require('semver/functions/gt')
 // heroku buildpack dir or local test
 const buildDir = process.env.BUILD_DIR || '../'
-const bpDir = process.env.BP_DIR || './'
+const bpDir = process.env.BP_DIR || '../'
 const deps = require(path.join(bpDir, 'deps.json'));
 // get host app's package.json
 const package = require(path.join(buildDir, 'package.json'));
@@ -47,12 +48,28 @@ function findDepVersion(deps, searchKey) {
 const deepDeps = recursiveSearch(deps, 'dependencies');
 console.log("Deep dependency count:", deepDeps.length);
 
+// dedupe deps, keeping the highest semver version for each
+const dedupedDeps = deepDeps.reduce((acc, dep) => {
+  const existing = acc.find(d => d.name === dep.name);
+  if (existing) {
+    console.log('exists, versions:', existing.version, dep.version);
+    if (semverGt(dep.version, existing.version)) {
+      acc.splice(acc.indexOf(existing), 1, dep);
+    }
+  } else {
+    acc.push(dep);
+  }
+  return acc;
+}, []);
+console.log("Deduped dependency count:", dedupedDeps.length);
+
+
 // normal deps
-output.deps = package.dependencies ? Object.keys(package.dependencies).map(d => findDepVersion(deepDeps, d)): [];
-output.devDeps = package.devDependencies ? Object.keys(package.devDependencies).map(d => findDepVersion(deepDeps, d)) : [];
-output.peerDeps = package.peerDependencies ? Object.keys(package.peerDependencies).map(d => findDepVersion(deepDeps, d)) : [];
+output.deps = package.dependencies ? Object.keys(package.dependencies).map(d => findDepVersion(dedupedDeps, d)): [];
+output.devDeps = package.devDependencies ? Object.keys(package.devDependencies).map(d => findDepVersion(dedupedDeps, d)) : [];
+output.peerDeps = package.peerDependencies ? Object.keys(package.peerDependencies).map(d => findDepVersion(dedupedDeps, d)) : [];
 // deps that aren't in deps, devDeps, or peerDeps
-output.secondaryDeps = deepDeps.filter(d => !output.deps.includes(d) && !output.devDeps.includes(d) && !output.peerDeps.includes(d));
+output.secondaryDeps = dedupedDeps.filter(d => !output.deps.includes(d) && !output.devDeps.includes(d) && !output.peerDeps.includes(d));
 
 // Write to file
 fs.writeFileSync(path.join(bpDir, 'deps.json.flat'), JSON.stringify(output, null, 2));
