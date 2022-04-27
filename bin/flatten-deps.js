@@ -1,6 +1,7 @@
 const path = require('path');
 const fs = require('fs');
 const semverGt = require('semver/functions/gt')
+const semverValid = require('semver/functions/valid')
 // heroku buildpack dir or local test
 const buildDir = process.env.BUILD_DIR || '../'
 const bpDir = process.env.BP_DIR || '../'
@@ -53,7 +54,7 @@ const dedupedDeps = deepDeps.reduce((acc, dep) => {
   const existing = acc.find(d => d.name === dep.name);
   if (existing) {
     console.log('exists, versions:', existing.version, dep.version);
-    if (semverGt(dep.version, existing.version)) {
+    if (semverValid(existing.version) && semverValid(dep.version) && semverGt(dep.version, existing.version)) {
       acc.splice(acc.indexOf(existing), 1, dep);
     }
   } else {
