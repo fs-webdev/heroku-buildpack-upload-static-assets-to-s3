@@ -28,25 +28,29 @@ ENV_DIR=${ENV_DIR} \
 SOURCE_VERSION=${SOURCE_VERSION} \
 node ${BP_DIR}/lib/upload.js | output "$LOG_FILE"
 
-
+generated_lockfile=0
 ### Send deps to Frontier Dashboard
 if [ -f $1/package.json ]; then
     echo "Frontier Dashboard steps:"
     echo "$(env)"
+    echo "${ENV_DIR} $(cat ${ENV_DIR}/*)"
     echo "$(ls -la)"
     echo "Checking for lockfile..."
-    if [ ! -f package-lock.json ]; then
+    if [ ! -f ${BUILD_DIR}/package-lock.json ]; then
         echo "No lockfile, generating one"
         generated_lockfile=1
+        cd ${BUILD_DIR}
         npm install --package-lock-only
+        cd ${BP_DIR}
+        echo "lockfile: $(ls -l ${BUILD_DIR}/package-lock.json)"
     fi
     printf "Scanning deps... " && npm ls --json --prefix ${BUILD_DIR} > deps.json && printf "Done.\n"
     printf "Flattening deps... " && BUILD_DIR=${BUILD_DIR} BP_DIR=${BP_DIR} node ${BP_DIR}/bin/flatten-deps.js && printf "Done.\n"
     printf "Sending deps to Frontier Dashboard... " curl -X POST -H "x-api-key: hmPlMe6As2aNih6Dg3sRj8mHhiM9mDWo1bldZoaz" -d "$(cat ./deps.json.flat)" https://tiagtww9kj.execute-api.us-east-1.amazonaws.com/dev/app/deploy/snapshot && printf "Done.\n"
     echo "Cleaning up $generated_lockfile"
     if [ $generated_lockfile -eq 1 ]; then
-        echo "Removing generated lockfile"
-        rm package-lock.json
+        echo "Removing generated lockfile at ${BUILD_DIR}/package-lock.json"
+        rm ${BUILD_DIR}/package-lock.json
     fi
     echo "Done with Frontier Dashboard steps"
 fi
