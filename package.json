@@ -1,6 +1,6 @@
 {
   "name": "heroku-buildpack-upload-static-assets-to-s3",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Uploads static assets to S3 when deploying to heroku",
   "main": "lib/upload.js",
   "scripts": {
@@ -24,15 +24,6 @@
     "lodash": "^4.15.0",
     "mime-types": "^2.1.11",
     "semver": "^7.3.7",
-    "shelljs": "^0.8.4"
-  },
-  "devDependencies": {
-    "async": "^3.2.0",
-    "aws-sdk": "^2.5.0"
-  },
-  "peerDependencies": {
-    "lodash": "^4.15.0",
-    "mime-types": "^2.1.11",
     "shelljs": "^0.8.4"
   }
 }
