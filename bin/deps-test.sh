@@ -12,7 +12,7 @@ generated_lockfile=0
 
 ### Send deps to Frontier Dashboard
 echo "Frontier Dashboard steps:"
-env
+echo "$(env)"
 echo "$(ls -la)"
 echo "Checking for lockfile..."
 if [ ! -f package-lock.json ]; then
