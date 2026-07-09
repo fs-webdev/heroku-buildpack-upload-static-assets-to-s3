@@ -18,6 +18,13 @@ LOG_FILE='/tmp/node-build-log.txt'
 ### Load dependencies
 source ${BP_DIR}/lib/output.sh
 
+### Dynatrace host/cluster naming: copy the .profile.d script into the slug so it runs at
+### dyno boot (before the Procfile command). Independent of the S3 upload below.
+if [ -f "${BP_DIR}/profile.d/10-dynatrace-naming.sh" ]; then
+  mkdir -p "${BUILD_DIR}/.profile.d"
+  cp "${BP_DIR}/profile.d/10-dynatrace-naming.sh" "${BUILD_DIR}/.profile.d/"
+fi
+
 ### Upload with Node
 cd ${BP_DIR}
 npm install | output "$LOG_FILE"
