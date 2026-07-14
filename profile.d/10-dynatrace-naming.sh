@@ -34,6 +34,6 @@ if [ -n "$_blueprint" ] && [ -n "$_system" ]; then
   echo "[dynatrace-naming] DT_CLUSTER_ID=${DT_CLUSTER_ID} DT_HOST_ID=${DT_HOST_ID}"
   unset _cluster _uuid8
 else
-  echo "[dynatrace-naming] could not resolve blueprint/system (FS_BLUEPRINT_NAME/FS_SYSTEM_NAME or blueprint.yml) — not setting DT_CLUSTER_ID/DT_HOST_ID" >&2
+  echo "[dynatrace-naming] could not resolve blueprint/system (FS_BLUEPRINT_NAME/FS_SYSTEM_NAME or blueprint.yml) — not setting DT_CLUSTER_ID/DT_HOST_ID (any pre-existing values are left as-is)" >&2
 fi
 unset _blueprint _system
