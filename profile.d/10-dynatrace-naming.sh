@@ -17,8 +17,12 @@
 # --- resolve the {blueprint}-{system} base (prefer injected vars, fall back to in-slug data) ---
 _blueprint="${FS_BLUEPRINT_NAME:-}"
 if [ -z "$_blueprint" ] && [ -f blueprint.yml ]; then
-  # top-level `name:` only (skips indented `- name:` build/system entries); strip any quotes
-  _blueprint="$(sed -n 's/^name:[[:space:]]*//p' blueprint.yml | head -1 | tr -d "\"'")"
+  # top-level `name:` only (skips indented `- name:` build/system entries). Drop any inline
+  # comment and surrounding whitespace, then strip only surrounding quotes — so a value like
+  # `frontier # prod` or a name with an internal apostrophe doesn't leak into the identity.
+  _blueprint="$(sed -n 's/^name:[[:space:]]*//p' blueprint.yml | head -1 | sed -e 's/[[:space:]]*#.*$//' -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
+  _blueprint="${_blueprint#[\"\']}"   # strip one leading quote, if present
+  _blueprint="${_blueprint%[\"\']}"   # strip one trailing quote, if present
 fi
 _system="${FS_SYSTEM_NAME:-${TARGET_ENV:-}}"
 
@@ -29,7 +33,12 @@ if [ -n "$_blueprint" ] && [ -n "$_system" ]; then
   # os.hostname() on Heroku is the dyno UUID; the first block (8 hex) gives per-instance uniqueness.
   _uuid8="$(hostname)"
   _uuid8="${_uuid8%%-*}"
-  export DT_HOST_ID="${_cluster}-${DYNO:-}-${_uuid8}"
+  # add the dyno segment only when DYNO is set, so an unset DYNO doesn't leave a `--` gap
+  if [ -n "${DYNO:-}" ]; then
+    export DT_HOST_ID="${_cluster}-${DYNO}-${_uuid8}"
+  else
+    export DT_HOST_ID="${_cluster}-${_uuid8}"
+  fi
 
   echo "[dynatrace-naming] DT_CLUSTER_ID=${DT_CLUSTER_ID} DT_HOST_ID=${DT_HOST_ID}"
   unset _cluster _uuid8
