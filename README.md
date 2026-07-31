@@ -4,6 +4,10 @@ Uploads static assets to S3 when building Heroku apps, then removes them from th
 
 Requires the NodeJS buildpack to be installed. `https://github.com/heroku/heroku-buildpack-nodejs`
 
+Requires Node 24 or newer. The buildpack installs its own dependencies with `npm ci` during slug
+compile, using the Node version the Node buildpack put in place for the app — so the app's pinned
+Node version has to satisfy this, not just the buildpack's.
+
 The buildpack also gives the dyno a Dynatrace identity — see [Dynatrace naming](#dynatrace-naming) below. That part is independent of the S3 upload.
 
 # Build Environment Variables
@@ -60,7 +64,12 @@ heroku config:unset STATIC_SERVER
 
 # Slug Cleanup
 
-Once the upload finishes, the source directory is deleted from the slug. `_index.html` is preserved anywhere in the tree, since the app still serves it from the dyno.
+Once the upload finishes, the source directory is deleted from the slug in its entirety.
+
+Earlier versions carried an exclusion intended to keep `_index.html` in the slug, since the app
+serves it from the dyno, and earlier revisions of this README described it as preserved. It never
+actually was — the exclusion filtered a file list while the directory itself was removed
+recursively — so it is documented here as deleted, which is what has always happened.
 
 # Failure behavior
 

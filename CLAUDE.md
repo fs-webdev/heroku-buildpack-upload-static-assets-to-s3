@@ -34,6 +34,10 @@ Heroku invokes `bin/compile <build-dir> <cache-dir> <env-dir>`. That script sour
 
 `lib/upload.js` resolves config through `getEnvVariable(name, fallback)`, which checks `process.env` first and then falls back to reading `$ENV_DIR/<name>` — the buildpack API's file-per-var form. New config knobs should go through that helper, not `process.env` directly.
 
+`lib/upload.js` is CommonJS and stays that way — it was deliberately kept off ESM to hold the AWS SDK v3 migration to one change at a time. That constrains dependency choices: anything ESM-only is out (this is why slug cleanup uses `fs.rm` rather than a current `del`, whose every version past 6 is ESM-only).
+
+Uploads go through `@aws-sdk/lib-storage`'s `Upload` rather than a bare `PutObjectCommand`, because the `Body` is a `fs.createReadStream` and `Upload` is what handles a stream of unknown length. Credentials are only attached to the `S3Client` when both `S3_ACCESS_KEY` and `S3_SECRET_ACCESS_KEY` resolve — passing a credentials object with undefined members makes v3 throw instead of falling through to the default provider chain. `glob` is promise-based as of v9, so there's no callback form to hand it; the uploader wires its rejection handler to the `exit 1` path.
+
 The uploader is deliberately failure-tolerant: misconfiguration and S3 errors both log and `process.exit(0)`, so a broken upload never fails an app deploy. Preserve that unless asked otherwise. The one exception is a glob error, which exits 1.
 
 `bin/release` is an empty stub. `bin/detect` just echoes a name and exits 0.
@@ -52,7 +56,7 @@ Those commented-out lines are the record of what was removed; leave them unless 
 ## Conventions
 
 - Uploaded objects get `public-read` ACL and one-year immutable caching (`Expires`, `CacheControl`). The path is expected to be content-versioned by the app's own build, so cache headers stay aggressive.
-- `_index.html` is excluded from the post-upload slug cleanup (`del([dir, "!**/_index.html"])`) because the app still serves it from the dyno.
+- Post-upload slug cleanup removes the source directory outright (`fs.rm` with `recursive`/`force`), `_index.html` included. The intent was to keep `_index.html` in the slug because the app still serves it from the dyno, and the old code carried a `del([dir, "!**/_index.html"])` exclusion to that end — but it never worked, since `del` matched the directory itself and removed it recursively. Treat "does `_index.html` need to survive?" as an open question, not settled behavior; making it survive means globbing the tree and unlinking everything else.
 - `lib/environment.sh` defines `export_env_dir` but nothing sources it. It's dead code; don't build on it.
 - Buildpack scripts are tracked mode `644`, not `755`. Keep it that way when editing so diffs stay clean.
 - Bump `version` in `package.json` and add a `CHANGELOG.md` entry (Keep a Changelog format, semver) for any user-visible change — the changelog is maintained here, so keep it current.
