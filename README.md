@@ -50,7 +50,7 @@ STATIC_SERVER=fs-cdn2-origin.s3.amazonaws.com
 STATIC_PATH=/<AWS_STATIC_PREFIX>
 ```
 
-These variables can be overriden with config vars as expected
+These variables can be overridden with config vars as expected
 
 ```
 heroku config:set STATIC_SERVER=your.cdn.host
