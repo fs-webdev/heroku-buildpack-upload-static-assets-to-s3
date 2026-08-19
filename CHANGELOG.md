@@ -15,8 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Migrated from `aws-sdk` v2 (maintenance mode since 2023) to `@aws-sdk/client-s3` and
   `@aws-sdk/lib-storage` v3. `lib-storage`'s `Upload` replaces v2's `s3.upload`, which keeps the
   streaming behavior — files are still streamed from disk rather than read into memory. Key
-  layout, `public-read` ACL, `Expires`, `CacheControl`, 16-way upload concurrency, and the
-  10-retry policy (expressed as `maxAttempts: 11` in v3) are all unchanged.
+  layout, `public-read` ACL, `Expires`, 16-way upload concurrency, and the 10-retry policy
+  (expressed as `maxAttempts: 11` in v3) are all unchanged. `CacheControl` is corrected
+  separately, below.
 - Credentials are now only passed to the client when both `S3_ACCESS_KEY` and
   `S3_SECRET_ACCESS_KEY` resolve. v2 silently fell back to its default credential chain when
   config values were undefined; v3 rejects a credentials object with undefined members, so the
@@ -41,6 +42,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `lodash`, `shelljs`, and `del` dependencies. `shelljs` was imported but never used, `lodash` was
   only providing a `typeof` check, and `del` was replaced by `fs.rm` (see above). The buildpack now
   installs 47 packages at compile time instead of 99.
+
+### Fixed
+- `CacheControl` on uploaded objects now says `max-age=31536000,s-maxage=31536000` instead of
+  `max-age=31536000000,smax-age=31536000000`. The value was being built from a milliseconds
+  constant, but HTTP cache directives take delta-seconds, so it claimed a thousand-year lifetime
+  while `Expires` said one year. `smax-age` was also a misspelling of `s-maxage`, so shared caches
+  ignored that directive entirely and fell back to `max-age`. Nothing served stale content — asset
+  filenames are content-hashed by the app's own build, and caches clamp an overflowing
+  delta-seconds — but the headers now match the one-year lifetime the README documents.
 
 ## [1.1.0] - 2026-07-09
 
