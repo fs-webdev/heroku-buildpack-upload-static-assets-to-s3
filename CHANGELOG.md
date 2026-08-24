@@ -31,9 +31,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   updated, because every version past 6 is ESM-only, and the advisory could not be resolved with
   an `overrides` pin, because `brace-expansion@5`'s CommonJS build exports an object where
   `minimatch@3` expects a callable.
-- `.js` and `.mjs` assets now upload with `Content-Type: text/javascript` instead of
-  `application/javascript`, following `mime-types` v3 / `mime-db`. Both are valid and browsers
-  treat them identically; `text/javascript` is the IANA-registered type.
+- `Content-Type` on uploaded objects is unchanged from v2, including for `.js` and `.mjs`.
+  `mime-types` v3 returns `text/javascript` where v2 returned `application/javascript` — the only
+  web-asset type that moved between the pinned `mime-types@2.1.29` and `3.0.2` — so the uploader
+  pins `.js`/`.mjs` back to `application/javascript` explicitly. Both types are valid and browsers
+  treat them identically, but CDN rules commonly key compression and caching on a content-type
+  allowlist, and this bucket has been served as `application/javascript` for years. Nothing else
+  changed: `.woff`, `.woff2`, and `.ico` already resolved to `font/woff`, `font/woff2`, and
+  `image/vnd.microsoft.icon` under 2.1.29.
 - Updated `glob` 7 → 13 and `mime-types` 2 → 3, and bumped `async` to 3.2.6. `glob` is
   promise-based as of v9, so the uploader awaits it rather than passing a callback. `lib/upload.js`
   remains a CommonJS module.
