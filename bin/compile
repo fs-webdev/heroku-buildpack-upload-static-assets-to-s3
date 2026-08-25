@@ -27,7 +27,7 @@ fi
 
 ### Upload with Node
 cd ${BP_DIR}
-npm install | output "$LOG_FILE"
+npm ci | output "$LOG_FILE"
 
 BUILD_DIR=${BUILD_DIR} \
 CACHE_DIR=${CACHE_DIR} \
