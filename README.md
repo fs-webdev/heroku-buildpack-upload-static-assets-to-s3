@@ -82,8 +82,11 @@ The upload is not allowed to break a deploy. Missing configuration and S3 upload
 ```sh
 DT_CLUSTER_ID=<blueprint>-<system>
 DT_HOST_ID=<blueprint>-<system>-<dyno>-<first 8 hex of the dyno UUID>
+OTEL_SERVICE_NAME=<blueprint>-<system>   # unless the app already sets it
 ```
 
 `blueprint` and `system` come from `FS_BLUEPRINT_NAME` / `FS_SYSTEM_NAME`, falling back to the top-level `name` in the slug's `blueprint.yml` and `TARGET_ENV`. If neither resolves, the script logs to stderr and leaves any pre-existing values alone.
 
 `DT_CLUSTER_ID` stands in for a host group, which Heroku's PaaS can't set. `@fs/startup` sets the same value on cluster workers, so the format is a cross-repo contract — read the comments in the script before changing it.
+
+`OTEL_SERVICE_NAME` names the Dynatrace service. OneAgent honors it without the OpenTelemetry SDK, and it also becomes `dt.service.name` on spans and metrics. Without it, a Node.js service is named after the `package.json` nearest the main script, which under `@fs/startup` is `@fs/startup` for every app. An app that sets `OTEL_SERVICE_NAME` itself keeps its value.
