@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 A Heroku buildpack that runs at slug-compile time. It does two unrelated jobs:
 
 1. **Static asset upload** — copies everything under the app's build output directory to S3, writes a `.profile.d` script exporting `STATIC_SERVER`/`STATIC_PATH`, then deletes the uploaded files from the slug to keep it small.
-2. **Dynatrace naming** — copies `profile.d/10-dynatrace-naming.sh` into the slug so the dyno exports `DT_CLUSTER_ID`/`DT_HOST_ID` at boot.
+2. **Dynatrace naming** — copies `profile.d/10-dynatrace-naming.sh` into the slug so the dyno exports `DT_CLUSTER_ID`/`DT_HOST_ID`/`OTEL_SERVICE_NAME` at boot.
 
 The two paths share nothing but `bin/compile`. Changing one shouldn't touch the other.
 

@@ -10,6 +10,14 @@
 #   DT_HOST_ID    = {blueprint}-{system}-{dyno}-{uuid8}   host name. The dyno + first 8 hex of the dyno
 #                                                         UUID stand in for the IP octets AWS uses,
 #                                                         e.g. myapp-prod-web.1-02e7ae57
+#   OTEL_SERVICE_NAME = {blueprint}-{system}             service name. OneAgent reads it with no OTel SDK
+#                                                         and uses it for the service and for
+#                                                         dt.service.name on spans and metrics. Without
+#                                                         it, a Node service is named after the main
+#                                                         script's package.json, which under @fs/startup
+#                                                         is "@fs/startup" for every app. The system stays
+#                                                         in the name so int/beta/prod read apart in
+#                                                         alerts and legends. Left alone if the app sets it.
 #
 # blueprint / system come from FS_BLUEPRINT_NAME / FS_SYSTEM_NAME, injected by heroku-tools at deploy.
 # Until that's everywhere, we fall back to the in-slug blueprint.yml `name` and TARGET_ENV.
@@ -29,6 +37,7 @@ _system="${FS_SYSTEM_NAME:-${TARGET_ENV:-}}"
 if [ -n "$_blueprint" ] && [ -n "$_system" ]; then
   _cluster="${_blueprint}-${_system}"
   export DT_CLUSTER_ID="$_cluster"
+  export OTEL_SERVICE_NAME="${OTEL_SERVICE_NAME:-$_cluster}"
 
   # os.hostname() on Heroku is the dyno UUID; the first block (8 hex) gives per-instance uniqueness.
   _uuid8="$(hostname)"
@@ -40,9 +49,9 @@ if [ -n "$_blueprint" ] && [ -n "$_system" ]; then
     export DT_HOST_ID="${_cluster}-${_uuid8}"
   fi
 
-  echo "[dynatrace-naming] DT_CLUSTER_ID=${DT_CLUSTER_ID} DT_HOST_ID=${DT_HOST_ID}"
+  echo "[dynatrace-naming] DT_CLUSTER_ID=${DT_CLUSTER_ID} DT_HOST_ID=${DT_HOST_ID} OTEL_SERVICE_NAME=${OTEL_SERVICE_NAME}"
   unset _cluster _uuid8
 else
-  echo "[dynatrace-naming] could not resolve blueprint/system (FS_BLUEPRINT_NAME/FS_SYSTEM_NAME or blueprint.yml) — not setting DT_CLUSTER_ID/DT_HOST_ID (any pre-existing values are left as-is)" >&2
+  echo "[dynatrace-naming] could not resolve blueprint/system (FS_BLUEPRINT_NAME/FS_SYSTEM_NAME or blueprint.yml) — not setting DT_CLUSTER_ID/DT_HOST_ID/OTEL_SERVICE_NAME (any pre-existing values are left as-is)" >&2
 fi
 unset _blueprint _system
