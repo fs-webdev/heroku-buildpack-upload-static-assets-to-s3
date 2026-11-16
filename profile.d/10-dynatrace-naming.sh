@@ -17,7 +17,14 @@
 #                                                         script's package.json, which under @fs/startup
 #                                                         is "@fs/startup" for every app. The system stays
 #                                                         in the name so int/beta/prod read apart in
-#                                                         alerts and legends. Left alone if the app sets it.
+#                                                         alerts and legends.
+#
+# All three are always computed; a value already in the environment (a config var, a fs-config
+# catch-all) is overwritten. That keeps naming consistent and derivable from the blueprint.
+# DT_CLUSTER_ID in particular can't be overridden here alone: when FS_* are set, @fs/startup
+# gives workers the computed value regardless, so the master would land in a different process
+# group from its workers. If a real need to override comes up, add it here and in @fs/startup
+# together.
 #
 # blueprint / system come from FS_BLUEPRINT_NAME / FS_SYSTEM_NAME, injected by heroku-tools at deploy.
 # Until that's everywhere, we fall back to the in-slug blueprint.yml `name` and TARGET_ENV.
@@ -37,7 +44,7 @@ _system="${FS_SYSTEM_NAME:-${TARGET_ENV:-}}"
 if [ -n "$_blueprint" ] && [ -n "$_system" ]; then
   _cluster="${_blueprint}-${_system}"
   export DT_CLUSTER_ID="$_cluster"
-  export OTEL_SERVICE_NAME="${OTEL_SERVICE_NAME:-$_cluster}"
+  export OTEL_SERVICE_NAME="$_cluster"
 
   # os.hostname() on Heroku is the dyno UUID; the first block (8 hex) gives per-instance uniqueness.
   _uuid8="$(hostname)"

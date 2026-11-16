@@ -5,6 +5,15 @@ All notable changes to this project are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+- `profile.d/10-dynatrace-naming.sh` always sets `OTEL_SERVICE_NAME` to `<blueprint>-<system>`,
+  overwriting a value already set, as it already did for `DT_CLUSTER_ID` and `DT_HOST_ID`. No app
+  set it, so no service is renamed. Overrides are left out until a team needs one; `DT_CLUSTER_ID`
+  would also need `@fs/startup` to honor it, or the master and workers split into separate process
+  groups.
+
 ## [2.0.1] - 2026-10-28
 
 ### Added
